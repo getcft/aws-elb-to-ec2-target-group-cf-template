@@ -1,4 +1,4 @@
-# aws-elb-to-target-group-cf-template
+# aws-elb-to-ec2-target-group-cf-template
 
 ## Description:
 
