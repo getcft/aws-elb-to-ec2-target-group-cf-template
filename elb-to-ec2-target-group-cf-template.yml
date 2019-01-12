@@ -282,7 +282,8 @@ Resources:
                 - IpProtocol: tcp
                   FromPort: 80
                   ToPort: 80
-                  CidrIp: 0.0.0.0/0
+                  SourceSecurityGroupId:
+                      Ref: ELBSecurityGroup
 
     # ELB Security Group allowing Port 80 from anywhere
     ELBSecurityGroup:
@@ -390,6 +391,10 @@ Outputs:
         Description: 'Virtual Private Cloud'
         Value:
           Ref: 'VPC'
+    ALBHostName:
+        Description: 'Application Load Balancer Hostname'
+        Value:
+          !GetAtt ApplicationLoadBalancer.DNSName
     EC2Instance:
         Description: 'EC2 Instance'
         Value:
