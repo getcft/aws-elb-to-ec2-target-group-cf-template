@@ -43,7 +43,7 @@ Mappings:
 
 Resources:
 
-    # VPC 
+    # VPC
     VPC:
         Type: 'AWS::EC2::VPC'
         Properties:
@@ -394,3 +394,11 @@ Outputs:
         Description: 'EC2 Instance'
         Value:
           Ref: AmazonLinuxInstance
+    EC2TargetGroup:
+        Description: 'EC2 Target Group'
+        Value:
+          Ref: EC2TargetGroup
+    ApplicationLoadBalancer:
+        Description: 'Application Load Balancer'
+        Value:
+          Ref: ApplicationLoadBalancer
