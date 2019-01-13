@@ -12,7 +12,7 @@ AWS Elastic Load Balancing automatically distributes incoming application traffi
 
  AWS Elastic Compute Cloud (Amazon EC2) is a web service that provides secure, resizable compute capacity in the cloud
 
-_***note AWS NAT Gateway and Elastic IP will incur costs**_
+_***note AWS ELB and EC2 will incur costs**_
 
 * [ELB pricing](https://aws.amazon.com/elasticloadbalancing/pricing/) resource used in example: 1 Application Load Balancer
 * [EC2 pricing](https://aws.amazon.com/ec2/pricing/on-demand/) resource used in example: 1 t2.nano
