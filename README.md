@@ -33,7 +33,7 @@ AWS Management Console
 CloudFormation Fields
 
 * Stack name (Enter a name to associate to your AWS VPC, ELB, EC2 deployment)
-* SSHKeyName (Used for EC2 Instance)**Next**
+* SSHKeyName (Used for EC2 Instance) **Next**
 * Continue choosing **Next**
 * Click **Create**
 
@@ -45,12 +45,12 @@ In the AWS Management Console you should be able to verify the following have be
 * 1 Private Subnet 10.0.20.0/24 (Zone A)
 * 1 Public Subnet 10.0.30.0/24 (Zone B)
 * 1 Private Subnet 10.0.40.0/24 (Zone B)
-* 5 Route table entries to route either within 10.0.0.0/16 or to the either the Internet Gateway or NAT Gateway for outbound
+* 5 Route table entries to route either within 10.0.0.0/16 or to the Internet Gateway for outbound
 * 1 Internet Gateway
 * 1 ELB Security Group with Port 80 open to everyone
 * 1 EC2 Security Group with Port 22 open to everyone and Port 80 open to the Load Balancer
-* 1 ELB - Application Load Balancer
-* 1 EC2 t2.nano linux instance
+* 1 ELB Application Load Balancer
+* 1 EC2 t2.nano linux instance running Apache
 * 1 EC2 Target Group
 
 You can find in the CloudFormation Outputs section the "ALBHostName" copy the hostname from the "Value" column and paste it into a browser you should see the word "Healthy" return.
