@@ -1,0 +1,409 @@
+# Copyright [2018] [Phil Chen]
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creates a VPC and a ELB with a EC2 Target Group Associated
+
+Parameters:
+
+    SSHKeyName:
+        Description: 'Name of the ec2 key you need one to use this template'
+        Type: 'AWS::EC2::KeyPair::KeyName'
+        Default: 'choose-key'
+
+Mappings:
+
+    RegionToAmazonAMI:
+        us-east-1:
+            HVM64: ami-09479453c5cde9639
+        us-east-2:
+            HVM64: ami-023c8dbf8268fb3ca
+        us-west-1:
+            HVM64: ami-06ff511fea5db2c99
+        us-west-2:
+            HVM64: ami-0bb5806b2e825a199
+
+    NetworkToSubnet:
+        "10.0.0.0":
+            PubSubnetZoneA: "10.0.10.0/24"
+            PrivSubnetZoneA: "10.0.20.0/24"
+            PubSubnetZoneB: "10.0.30.0/24"
+            PrivSubnetZoneB: "10.0.40.0/24"
+
+Resources:
+
+    # VPC
+    VPC:
+        Type: 'AWS::EC2::VPC'
+        Properties:
+            CidrBlock:
+                'Fn::Join': [ '/', [ '10.0.0.0', '16' ] ]
+            EnableDnsSupport: true
+            EnableDnsHostnames: true
+            InstanceTenancy: 'default'
+            Tags:
+                - Key: 'Name'
+                  Value:
+                      Ref: 'AWS::StackName'
+
+    # Internet accessable subnet in the first availability zone
+    PubSubnetZoneA:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone:
+                Fn::Select:
+                - '0'
+                - Fn::GetAZs:
+                    Ref: 'AWS::Region'
+            CidrBlock:
+                Fn::FindInMap:
+                - NetworkToSubnet
+                - '10.0.0.0'
+                - PubSubnetZoneA
+            MapPublicIpOnLaunch: 'True'
+            VpcId:
+                Ref: 'VPC'
+            Tags:
+                - Key: 'Name'
+                  Value:
+                      'Fn::Join': [ ':', [ 'Public', 'Zone A', !Ref 'AWS::StackName' ] ]
+
+    # Non-internet accessable subnet in the first availability zone
+    PrivSubnetZoneA:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone:
+                Fn::Select:
+                - '0'
+                - Fn::GetAZs:
+                    Ref: 'AWS::Region'
+            CidrBlock:
+                Fn::FindInMap:
+                - NetworkToSubnet
+                - '10.0.0.0'
+                - PrivSubnetZoneA
+            MapPublicIpOnLaunch: 'False'
+            VpcId:
+                Ref: 'VPC'
+            Tags:
+                - Key: 'Name'
+                  Value:
+                      'Fn::Join': [ ':', [ 'Private', 'Zone A', !Ref 'AWS::StackName' ] ]
+
+    # Internet accessable subnet in the second availability zone
+    PubSubnetZoneB:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone:
+                Fn::Select:
+                - '1'
+                - Fn::GetAZs:
+                    Ref: 'AWS::Region'
+            CidrBlock:
+                Fn::FindInMap:
+                - NetworkToSubnet
+                - '10.0.0.0'
+                - PubSubnetZoneB
+            MapPublicIpOnLaunch: 'True'
+            VpcId:
+                Ref: 'VPC'
+            Tags:
+                - Key: 'Name'
+                  Value:
+                      'Fn::Join': [ ':', [ 'Public', 'Zone B', !Ref 'AWS::StackName' ] ]
+
+    # Non-internet accessable subnet in the second availability zone
+    PrivSubnetZoneB:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone:
+                Fn::Select:
+                - '1'
+                - Fn::GetAZs:
+                    Ref: 'AWS::Region'
+            CidrBlock:
+                Fn::FindInMap:
+                - NetworkToSubnet
+                - '10.0.0.0'
+                - PrivSubnetZoneB
+            MapPublicIpOnLaunch: 'False'
+            VpcId:
+                Ref: 'VPC'
+            Tags:
+                - Key: 'Name'
+                  Value:
+                      'Fn::Join': [ ':', [ 'Private', 'Zone B', !Ref 'AWS::StackName' ] ]
+
+    # Gateway to the internet
+    InternetGateway:
+        Type: 'AWS::EC2::InternetGateway'
+        Properties:
+            Tags:
+                - Key: 'Name'
+                  Value:
+                      Ref: 'AWS::StackName'
+
+    # Associate the gateway to the VPC
+    GatewayAttachment:
+        Type: AWS::EC2::VPCGatewayAttachment
+        Properties:
+            InternetGatewayId:
+                Ref: 'InternetGateway'
+            VpcId:
+                Ref: 'VPC'
+
+    # Routing table for the public subnet in availability zone A
+    RouteTablePubZoneA:
+        Type: AWS::EC2::RouteTable
+        Properties:
+            VpcId:
+                Ref: 'VPC'
+            Tags:
+                - Key: 'Name'
+                  Value:
+                      'Fn::Join': [ ':', [ 'Public', 'Zone A', !Ref 'AWS::StackName' ] ]
+
+    # Routing table for the public subnet in availability zone B
+    RouteTablePubZoneB:
+        Type: AWS::EC2::RouteTable
+        Properties:
+            VpcId:
+                Ref: 'VPC'
+            Tags:
+                - Key: 'Name'
+                  Value:
+                      'Fn::Join': [ ':', [ 'Public', 'Zone B', !Ref 'AWS::StackName' ] ]
+
+    # Route traffic through the internet gateway
+    RoutePubZoneA:
+        DependsOn:
+            - InternetGateway
+        Type: AWS::EC2::Route
+        Properties:
+            DestinationCidrBlock: '0.0.0.0/0'
+            GatewayId:
+                Ref: 'InternetGateway'
+            RouteTableId:
+                Ref: 'RouteTablePubZoneA'
+
+    # Route traffic through the internet gateway
+    RoutePubZoneB:
+        DependsOn:
+            - InternetGateway
+        Type: AWS::EC2::Route
+        Properties:
+            DestinationCidrBlock: 0.0.0.0/0
+            GatewayId:
+                Ref: 'InternetGateway'
+            RouteTableId:
+                Ref: 'RouteTablePubZoneB'
+
+    # Associate public subnet to its routing table
+    RouteAssociationPubSubnetZoneA:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            SubnetId:
+                Ref: 'PubSubnetZoneA'
+            RouteTableId:
+                Ref: 'RouteTablePubZoneA'
+
+    # Associate public subnet to its routing table
+    RouteAssociationPubSubnetZoneB:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            SubnetId:
+                Ref: 'PubSubnetZoneB'
+            RouteTableId:
+                Ref: 'RouteTablePubZoneB'
+
+    # Routing table for the private subnet in availability zone A
+    RouteTablePrivZoneA:
+        Type: AWS::EC2::RouteTable
+        Properties:
+            VpcId:
+                Ref: 'VPC'
+            Tags:
+                - Key: 'Name'
+                  Value:
+                      'Fn::Join': [ ':', [ 'Private', 'Zone A', !Ref 'AWS::StackName' ] ]
+
+    # Routing table for the private subnet in availability zone B
+    RouteTablePrivZoneB:
+        Type: AWS::EC2::RouteTable
+        Properties:
+            VpcId:
+                Ref: 'VPC'
+            Tags:
+                - Key: 'Name'
+                  Value:
+                      'Fn::Join': [ ':', [ 'Private', 'Zone B', !Ref 'AWS::StackName' ] ]
+
+    # Associate the private subnet with its routing table
+    RouteAssociationPrivSubnetZoneA:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            SubnetId:
+                Ref: 'PrivSubnetZoneA'
+            RouteTableId:
+                Ref: 'RouteTablePrivZoneA'
+
+    # Associate the private subnet with its routing table
+    RouteAssociationPrivSubnetZoneB:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            SubnetId:
+                Ref: 'PrivSubnetZoneB'
+            RouteTableId:
+                Ref: 'RouteTablePrivZoneB'
+
+    # EC2 Security Group Allowing Port 22 and 80 from anywhere
+    EC2SecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: 'SSH and Port 80'
+            VpcId:
+              Ref: VPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 22
+                  ToPort: 22
+                  CidrIp: 0.0.0.0/0
+                - IpProtocol: tcp
+                  FromPort: 80
+                  ToPort: 80
+                  SourceSecurityGroupId:
+                      Ref: ELBSecurityGroup
+
+    # ELB Security Group allowing Port 80 from anywhere
+    ELBSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: 'SSH and Port 80'
+            VpcId:
+              Ref: VPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 80
+                  ToPort: 80
+                  CidrIp: 0.0.0.0/0
+
+    # Linux Instance with Apache running on Port 80
+    AmazonLinuxInstance:
+      Type: AWS::EC2::Instance
+      Properties:
+        ImageId:
+          Fn::FindInMap:
+            - RegionToAmazonAMI
+            - Ref: 'AWS::Region'
+            - HVM64
+        InstanceInitiatedShutdownBehavior: stop
+        InstanceType: t2.nano
+        KeyName:
+          Ref: SSHKeyName
+        Monitoring: 'true'
+        NetworkInterfaces:
+        - AssociatePublicIpAddress: 'true'
+          DeviceIndex: '0'
+          GroupSet:
+          - !Ref EC2SecurityGroup
+          SubnetId:
+            Ref: PubSubnetZoneA
+        Tenancy: default
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash -xe
+            cd /tmp
+            yum update -y
+            yum install -y httpd24
+            echo "Healthy" > /var/www/html/index.html
+            service httpd start
+            /opt/aws/bin/cfn-signal \
+              -e $? \
+              --stack ${AWS::StackName} \
+              --resource AmazonLinuxInstance \
+              --region ${AWS::Region}
+
+    # Target Group
+    EC2TargetGroup:
+      Type: AWS::ElasticLoadBalancingV2::TargetGroup
+      Properties:
+        HealthCheckIntervalSeconds: 30
+        HealthCheckProtocol: HTTP
+        HealthCheckTimeoutSeconds: 15
+        HealthyThresholdCount: 5
+        Matcher:
+          HttpCode: '200'
+        Name: EC2TargetGroup
+        Port: 80
+        Protocol: HTTP
+        TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: '20'
+        Targets:
+        - Id:
+            Ref: AmazonLinuxInstance
+          Port: 80
+        UnhealthyThresholdCount: 3
+        VpcId:
+          Ref: 'VPC'
+        Tags:
+        - Key: Name
+          Value: EC2TargetGroup
+        - Key: Port
+          Value: 80
+
+    #ELB (ALB)
+    ALBListener:
+      Type: AWS::ElasticLoadBalancingV2::Listener
+      Properties:
+        DefaultActions:
+          - Type: forward
+            TargetGroupArn:
+              Ref: EC2TargetGroup
+        LoadBalancerArn:
+            Ref: ApplicationLoadBalancer
+        Port: 80
+        Protocol: HTTP
+    ApplicationLoadBalancer:
+      Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+      Properties:
+        Scheme: internet-facing # or internal
+        Subnets:
+        - Ref: PubSubnetZoneA
+        - Ref: PubSubnetZoneB
+        SecurityGroups:
+        - Ref: ELBSecurityGroup
+
+Outputs:
+
+    VPC:
+        Description: 'Virtual Private Cloud'
+        Value:
+          Ref: 'VPC'
+    ALBHostName:
+        Description: 'Application Load Balancer Hostname'
+        Value:
+          !GetAtt ApplicationLoadBalancer.DNSName
+    EC2Instance:
+        Description: 'EC2 Instance'
+        Value:
+          Ref: AmazonLinuxInstance
+    EC2TargetGroup:
+        Description: 'EC2 Target Group'
+        Value:
+          Ref: EC2TargetGroup
+    ApplicationLoadBalancer:
+        Description: 'Application Load Balancer'
+        Value:
+          Ref: ApplicationLoadBalancer
