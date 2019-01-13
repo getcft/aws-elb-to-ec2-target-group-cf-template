@@ -32,7 +32,7 @@ AWS Management Console
 
 CloudFormation Fields
 
-* Stack name (Enter a name to associate to your AWS VPC deployment)
+* Stack name (Enter a name to associate to your AWS VPC, ELB, EC2 deployment)
 * SSHKeyName (Used for EC2 Instance)**Next**
 * Continue choosing **Next**
 * Click **Create**
