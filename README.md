@@ -2,11 +2,15 @@
 
 ## Description:
 
-This solution creates an [AWS VPC](https://aws.amazon.com/vpc/) environment that has 2 public zones and 2 private zones with an EC2 Target Group that has 1 EC2 linux instance in it and a [AWS ELB](https://aws.amazon.com/elasticloadbalancing/) (ALB) routing traffic.
+This solution creates an [AWS VPC](https://aws.amazon.com/vpc/) environment that has 2 public zones and 2 private zones with an EC2 Target Group that has one EC2 linux instance in it and a [AWS ELB](https://aws.amazon.com/elasticloadbalancing/) (ALB) routing traffic to it.
 
-The AWS CloudFormation template creates a AWS VPC with 2 public subnets and 2 private subnets with an EC2 Target Group that has 1 EC2 linux instance running Apache on port 80 in it and a ELB (ALB) public facing routing traffic on port 80 to the target group.
+The AWS CloudFormation template creates a AWS VPC with 2 public subnets and 2 private subnets with an EC2 Target Group that has one EC2 linux instance running Apache on port 80 in it and a public facing ELB (ALB) routing traffic on port 80 to the EC2 target group.
 
-Amazon Virtual Private Cloud (Amazon VPC) lets you provision a logically isolated section of the AWS Cloud where you can launch AWS resources in a virtual network that you define.
+AWS Virtual Private Cloud (Amazon VPC) lets you provision a logically isolated section of the AWS Cloud where you can launch AWS resources in a virtual network that you define.
+
+AWS Elastic Load Balancing automatically distributes incoming application traffic across multiple targets, such as Amazon EC2 instances, containers, IP addresses, and Lambda functions. It can handle the varying load of your application traffic in a single Availability Zone or across multiple Availability Zones.
+
+ AWS Elastic Compute Cloud (Amazon EC2) is a web service that provides secure, resizable compute capacity in the cloud
 
 _***note AWS NAT Gateway and Elastic IP will incur costs**_
 
@@ -17,6 +21,7 @@ _***note AWS NAT Gateway and Elastic IP will incur costs**_
 
 * AWS account and environment configured with AWS Credentials
 * IAM user with AWSCloudFormationReadOnlyAccess, AmazonVPCFullAccess, AmazonEC2FullAccess
+* This example works without modification in the following regions: us-west-1, us-west-2, us-east-1, us-east-2
 
 ## See how it works:
 
