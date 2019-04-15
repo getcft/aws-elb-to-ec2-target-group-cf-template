@@ -79,3 +79,4 @@ You can find in the CloudFormation Outputs section the "ALBHostName" copy the ho
 ## Best Practices
 
 * You would normally put your EC2 instance or instances in a private subnet but to save costs for this example we didn't provision a NAT Gateway but needed to install Apache so we elected to put it in a public subnet.
+* For traffic that does not need to be reachable from outside your VPC private network space you can provision ELB to be internal versus this example where ELB is public internet facing.
