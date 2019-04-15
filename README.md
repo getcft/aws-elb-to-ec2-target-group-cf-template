@@ -7,6 +7,8 @@ This <a href="https://aws.amazon.com/cloudformation/" target="_blank">AWS CloudF
 
 The AWS CloudFormation template creates a AWS VPC with 2 public subnets and 2 private subnets with an EC2 Target Group that has one EC2 linux instance running Apache on port 80 in it and a public facing ELB (ALB) routing traffic on port 80 to the EC2 target group.
 
+<img src="elb-to-target-group.png" alt="ELB/ALB to EC2 Target Group" />
+
 AWS Virtual Private Cloud (Amazon VPC) lets you provision a logically isolated section of the AWS Cloud where you can launch AWS resources in a virtual network that you define.
 
 AWS Elastic Load Balancing automatically distributes incoming application traffic across multiple targets, such as Amazon EC2 instances, containers, IP addresses, and Lambda functions. It can handle the varying load of your application traffic in a single Availability Zone or across multiple Availability Zones.
@@ -74,6 +76,6 @@ In the *AWS Management Console* you should be able to *verify* the following hav
 
 You can find in the CloudFormation Outputs section the "ALBHostName" copy the hostname from the "Value" column and paste it into a browser you should see the word "Healthy" return.
 
-## Best Practices:
+## Best Practices
 
 * You would normally put your EC2 instance or instances in a private subnet but to save costs for this example we didn't provision a NAT Gateway but needed to install Apache so we elected to put it in a public subnet.
