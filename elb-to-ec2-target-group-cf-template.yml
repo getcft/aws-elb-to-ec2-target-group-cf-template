@@ -187,8 +187,6 @@ Resources:
 
     # Route traffic through the internet gateway
     RoutePubZoneA:
-        DependsOn:
-            - InternetGateway
         Type: AWS::EC2::Route
         Properties:
             DestinationCidrBlock: '0.0.0.0/0'
@@ -199,8 +197,6 @@ Resources:
 
     # Route traffic through the internet gateway
     RoutePubZoneB:
-        DependsOn:
-            - InternetGateway
         Type: AWS::EC2::Route
         Properties:
             DestinationCidrBlock: 0.0.0.0/0
