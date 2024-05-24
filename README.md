@@ -1,5 +1,5 @@
 # aws-elb-to-ec2-target-group-cf-template
-[![Build Status](https://travis-ci.org/getcft/aws-elb-to-ec2-target-group-cf-template.svg?branch=master)](https://travis-ci.org/getcft/aws-elb-to-ec2-target-group-cf-template)
+[![CloudFormation Validation](https://github.com/getcft/aws-elb-to-ec2-target-group-cf-template/actions/workflows/cloudformation-validation.yml/badge.svg)](https://github.com/getcft/aws-elb-to-ec2-target-group-cf-template/actions/workflows/cloudformation-validation.yml)
 
 ## Description:
 
