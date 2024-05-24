@@ -18,11 +18,11 @@ jobs:
       - name: CloudFormation Template Validation
         run: |
           pip install awscli
-          aws cloudformation validate-template --template-body file://aws-elb-to-ec2-target-group-cf-template --region us-east-1
+          aws cloudformation validate-template --template-body file://aws-elb-to-ec2-target-group-cf-template.yml --region us-east-1
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: CloudFormation Linter
         run: |
           pip install cfn-lint
-          cfn-lint -I aws-elb-to-ec2-target-group-cf-template
+          cfn-lint -I aws-elb-to-ec2-target-group-cf-template.yml
